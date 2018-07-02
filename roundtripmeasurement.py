@@ -25,7 +25,9 @@ latencies of each packet received back from the server."""
         Start the two client threads: one to send packets, and one to receive them.
         """
         output_filename = self.test_output_filename
-        self.send_packets(target_address, n_packets, payload_len, send_rate_kbytes_per_s, output_filename)
+        with open(output_filename, 'w') as out_file:
+            out_file.write("%d\n" % n_packets)
+            self.send_packets(target_address, n_packets, payload_len, send_rate_kbytes_per_s, output_filename, out_file)
         return
 
         sender = multiprocessing.Process(

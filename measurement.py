@@ -9,6 +9,7 @@ import socket
 import time
 import argparse
 import pickle
+import sys
 
 class Measurement:
 
@@ -16,7 +17,7 @@ class Measurement:
         self.test_output_filename = test_output_filename
 
     @classmethod
-    def send_packets(cls, target_address, n_packets, packet_len, send_rate_kbytes_per_s, output_filename):
+    def send_packets(cls, target_address, n_packets, packet_len, send_rate_kbytes_per_s, output_filename, out_file):
         """
         Send n_packets packets, each with a payload of packet_len bytes, to
         target_address, trying to maintain a constant send rate of
@@ -41,7 +42,10 @@ class Measurement:
 
         send_start_seconds = time.time()
         inter_packet_sleep_times_ms = []
-        for packet_n in range(n_packets):
+        if n_packets == 0:
+            n_packets = sys.maxint
+        #for packet_n in range(n_packets):
+        for packet_n in xrange(n_packets):
             tx_start_seconds = time.time()
 
             payload = cls.get_packet_payload(packet_n)
@@ -57,6 +61,8 @@ class Measurement:
             (packet_nn, send_time) = pickle.loads(payload)
             latency_us = (recv_time - send_time) * 1e3 / 2
             packets.append((packet_nn, latency_us))
+            latency_ms = "%.2f" % latency_us
+            out_file.write("%s %s\n" % (packet_nn, latency_ms))
 
             tx_end_seconds = time.time()
 
@@ -65,6 +71,10 @@ class Measurement:
             tx_time_seconds = tx_end_seconds - tx_start_seconds
             sleep_time_seconds = packet_interval - tx_time_seconds
             inter_packet_sleep_times_ms.append("%.3f" % (sleep_time_seconds * 1000))
+
+            # force
+            sleep_time_seconds = 1
+
             if sleep_time_seconds > 0:
                 time.sleep(sleep_time_seconds)
         send_end_seconds = time.time()
@@ -79,7 +89,7 @@ class Measurement:
         # recv
         print("Received %d/%d packets back from server" % (len(packets),
                                                            n_packets))
-        cls.save_packet_latencies(packets, n_packets, output_filename)
+        #cls.save_packet_latencies(packets, n_packets, output_filename)
 
         sock_out.close()
 
