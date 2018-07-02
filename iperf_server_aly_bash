@@ -1,0 +1,41 @@
+#! /bin/bash
+
+bw_low=4.9
+delay_high=3.0
+loss_high=1.0
+
+if [ -z $1 ] || [ -z $2 ]; then
+	echo 'Usage: $0 file_name client_id'
+	exit 0
+fi
+
+rm -f "normal_$2.log"
+rm -f "error_$2.log"
+
+tail -F -n 1 $1 | while read line
+do
+	if echo $line | grep "${2}]" | grep "sec" | grep "Mbits/sec" &> /dev/null
+	then
+		bandwidth=`echo $line | cut -d " " -f 7`
+		delay_jitter=`echo $line | cut -d " " -f 9`
+		loss_rate=`echo $line | cut -d " " -f 13`
+		loss_num=`echo $loss_rate | tr -dc '0-9'`
+
+		date=$(date '+%Y-%m-%d %H:%M:%S')
+		echo $date $bandwidth $delay_jitter $loss_num >> "normal_$2.log"
+
+		var1=$(awk 'BEGIN{ print '$bandwidth'<'$bw_low' }')
+		var2=$(awk 'BEGIN{ print '$delay_high'<'$delay_jitter' }')
+		var3=$(awk 'BEGIN{ print '$loss_high'<'$loss_num' }')
+		if [ $var1 -eq 1 ] || [ $var2 -eq 1 ] || [ $var3 -eq 1 ]
+		then
+			echo $date $bandwidth $delay_jitter $loss_num >> "error_$2.log"
+		fi
+		#if [ $(bc <<< "$bandwidth <= $bw_low") -eq 1 ] ||
+		#   [ $(bc <<< "$delay_jitter >= $delay_high") -eq 1 ] ||
+		#   [ $(bc <<< "$loss_num >= $loss_high") -eq 1 ]
+		#then
+		#	echo 'error'
+		#fi
+	fi
+done

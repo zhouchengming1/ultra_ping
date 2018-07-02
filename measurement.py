@@ -7,6 +7,7 @@ file).
 from __future__ import division
 import socket
 import time
+import datetime
 import argparse
 import pickle
 import sys
@@ -54,15 +55,20 @@ class Measurement:
             payload = bytes(payload + n_fill_bytes * fill_char)
             sock_out.sendall(payload)
 
+            print 'sent:', packet_n
             # timeout recv
-            packet = sock_out.recv(packet_len)
+            try:
+                packet = sock_out.recv(packet_len)
+            except socket.timeout:
+                print 'loss:', packet_n
+                continue
             recv_time = time.time()
             payload = packet.rstrip("a")
             (packet_nn, send_time) = pickle.loads(payload)
             latency_us = (recv_time - send_time) * 1e3 / 2
             packets.append((packet_nn, latency_us))
             latency_ms = "%.2f" % latency_us
-            out_file.write("%s %s\n" % (packet_nn, latency_ms))
+            out_file.write("%s %s %s\n" % (datetime.datetime.now(), packet_nn, latency_ms))
 
             tx_end_seconds = time.time()
 
