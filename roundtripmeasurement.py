@@ -55,9 +55,6 @@ latencies of each packet received back from the server."""
             socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock_in.bind(("0.0.0.0", listen_port))
 
-        sock_out = \
-            socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-
         print("UDP server running...")
 
         while True:
@@ -65,12 +62,11 @@ latencies of each packet received back from the server."""
                 data, recv_addr = sock_in.recvfrom(recv_buffer_size)
                 if not data:
                     break
-                send_addr = (recv_addr[0], listen_port + 1)
-                sock_out.sendto(data, send_addr)
+                send_addr = (recv_addr[0], recv_addr[1])
+                sock_in.sendto(data, send_addr)
             except KeyboardInterrupt:
                 break
         print("Closing...")
-        sock_out.close()
         sys.exit(0)
 
     @classmethod

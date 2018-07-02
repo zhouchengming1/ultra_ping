@@ -29,6 +29,9 @@ class Measurement:
             socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock_out.connect(target_address)
 
+        sock_out.settimeout(5)
+        packets = []
+
         cls.pre_send(n_packets, sock_out)
 
         print("Sending %d %d-byte packets at about %d kB/s to %s:%d..." %
@@ -45,6 +48,14 @@ class Measurement:
             fill_char = "a"
             payload = bytes(payload + n_fill_bytes * fill_char)
             sock_out.sendall(payload)
+
+            packet = sock_out.recv(packet_len)
+            recv_time = time.time()
+            payload = packet.rstrip("a")
+            (packet_n, send_time) = pickle.loads(payload)
+            latency_us = (recv_time - send_time) * 1e6
+            packets.append((packet_n, latency_us))
+            continue
 
             tx_end_seconds = time.time()
 
