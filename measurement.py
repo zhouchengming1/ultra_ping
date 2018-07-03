@@ -62,9 +62,11 @@ class Measurement:
             except socket.timeout:
                 print 'loss:', packet_n
                 continue
-            recv_time = time.time()
             payload = packet.rstrip("a")
             (packet_nn, send_time) = pickle.loads(payload)
+            if packet_nn != packet_n:
+                continue
+            recv_time = time.time()
             latency_us = (recv_time - send_time) * 1e3 / 2
             packets.append((packet_nn, latency_us))
             latency_ms = "%.2f" % latency_us
