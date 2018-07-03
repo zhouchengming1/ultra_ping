@@ -1,6 +1,6 @@
 #! /bin/bash
 
-bw_low=4.9
+bw_low=4900000
 delay_high=3.0
 loss_high=1.0
 
@@ -14,6 +14,28 @@ rm -f "error_$2.log"
 
 tail -F -n 1 $1 | while read line
 do
+	# 20180703103309,3,1242150,4968600,1.104,0,845,0.000,0
+	# time, ID, len, bw, jitter, error, sum, loss_rate, out_of_order
+	cont=$(echo $line | cut -d ',' -f1,6,8,9,10,11,12,13,14)
+	time=`echo $cont | cut -d ',' -f1`
+	ID=`echo $cont | cut -d ',' -f2`
+	bw=`echo $cont | cut -d ',' -f4`
+	jitter=`echo $cont | cut -d ',' -f5`
+	loss_rate=`echo $cont | cut -d ',' -f8`
+
+	if [[ $ID == $2 ]]; then
+		echo $time $bw $jitter $loss_rate >> "normal_$2.log"
+		var1=$(awk 'BEGIN{ print '$bw'<'$bw_low' }')
+		var2=$(awk 'BEGIN{ print '$delay_high'<'$jitter' }')
+		var3=$(awk 'BEGIN{ print '$loss_high'<'$loss_rate' }')
+		if [ $var1 -eq 1 ] || [ $var2 -eq 1 ] || [ $var3 -eq 1 ]
+		then
+			echo $time $bw $jitter $loss_rate | tee -a "error_$2.log"
+		fi
+	fi
+
+	continue
+
 	if echo $line | grep "${2}]" | grep "sec" | grep "Mbits/sec" &> /dev/null
 	then
 		bandwidth=`echo $line | cut -d " " -f 7`
