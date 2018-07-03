@@ -1,0 +1,24 @@
+#! /bin/bash
+
+if [ -z $1 ]; then
+	echo 'Usage: $0 filename'
+	exit 0
+fi
+
+rm -f error.log
+
+delay_high=50.0
+
+tail -F -n 1 $1 | while read line; do
+	# 2018-07-03 10:51:35.716063 6 16.89
+	time=$(echo $line | cut -d " " -f2)
+	index=$(echo $line | cut -d " " -f3)
+	delay=$(echo $line | cut -d " " -f4)
+	if [ -z $index ]; then
+		continue
+	fi
+	var1=$(awk 'BEGIN{ print '$delay_high'<'$delay' }')
+	if [ $var1 -eq 1 ]; then
+		echo $time $index $delay | tee -a error.log
+	fi
+done

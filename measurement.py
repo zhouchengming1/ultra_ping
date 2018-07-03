@@ -69,6 +69,8 @@ class Measurement:
             packets.append((packet_nn, latency_us))
             latency_ms = "%.2f" % latency_us
             out_file.write("%s %s %s\n" % (datetime.datetime.now(), packet_nn, latency_ms))
+            if latency_ms >= 50:
+                print 'delay:', latency_ms
 
             tx_end_seconds = time.time()
 
