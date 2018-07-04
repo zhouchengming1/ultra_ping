@@ -67,7 +67,7 @@ class Measurement:
             if packet_nn != packet_n:
                 continue
             recv_time = time.time()
-            latency_us = (recv_time - send_time) * 1e3 / 2
+            latency_us = (recv_time - send_time) * 1e3
             packets.append((packet_nn, latency_us))
             latency_ms = "%.2f" % latency_us
             out_file.write("%s %s %s\n" % (datetime.datetime.now(), packet_nn, latency_ms))
