@@ -32,7 +32,7 @@ class Measurement:
             socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock_out.connect(target_address)
 
-        sock_out.settimeout(5)
+        sock_out.settimeout(0.5)
         packets = []
 
         cls.pre_send(n_packets, sock_out)
