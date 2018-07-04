@@ -1,0 +1,21 @@
+#! /bin/bash
+
+# tc qdisc add dev eth0 root netem delay 100ms
+IF=$1
+
+if (( $# != 5 )); then
+   echo "Usage: $0 dev delay loss apply_time sleep_time"
+   exit 0
+fi
+
+while true; do
+echo
+echo "--apply delay and loss"
+tc qdisc add dev $IF root netem delay ${2}ms loss ${3}%
+tc qdisc show dev $IF
+sleep $4
+echo "--del delay and loss"
+tc qdisc del dev $IF root
+tc qdisc show dev $IF
+sleep $5
+done
